@@ -28,8 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Search, Filter, Download, Send, MoreHorizontal, Eye, MessageSquare, FileText, Trash2, Upload } from 'lucide-react'
+import { Search, Download, Send, MoreHorizontal, Eye, MessageSquare, FileText, Trash2, Upload, Clock } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { TimingAnalyzer } from '@/components/timing-analyzer'
 
 const prospects = [
   {
@@ -42,7 +43,7 @@ const prospects = [
     status: 'connected',
     industry: 'Technology',
     lastActivity: '2 days ago',
-    avatar: '/professional-woman-diverse.png'
+    avatar: '/placeholder.svg?height=40&width=40&text=SJ'
   },
   {
     id: 2,
@@ -54,7 +55,7 @@ const prospects = [
     status: 'pending',
     industry: 'SaaS',
     lastActivity: '1 day ago',
-    avatar: '/professional-man.png'
+    avatar: '/placeholder.svg?height=40&width=40&text=MC'
   },
   {
     id: 3,
@@ -66,7 +67,7 @@ const prospects = [
     status: 'responded',
     industry: 'Marketing',
     lastActivity: '3 hours ago',
-    avatar: '/professional-woman-marketing.png'
+    avatar: '/placeholder.svg?height=40&width=40&text=ER'
   },
   {
     id: 4,
@@ -78,7 +79,7 @@ const prospects = [
     status: 'not_contacted',
     industry: 'Technology',
     lastActivity: '1 week ago',
-    avatar: '/professional-ceo.png'
+    avatar: '/placeholder.svg?height=40&width=40&text=DK'
   },
   {
     id: 5,
@@ -90,15 +91,17 @@ const prospects = [
     status: 'connected',
     industry: 'Sales',
     lastActivity: '5 days ago',
-    avatar: '/placeholder-culds.png'
+    avatar: '/placeholder.svg?height=40&width=40&text=LT'
   },
 ]
 
 export function ProspectsContent() {
   const [selectedProspects, setSelectedProspects] = useState<number[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [industryFilter, setIndustryFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
+  const [industryFilter, setIndustryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [timingAnalyzerOpen, setTimingAnalyzerOpen] = useState(false)
+  const [selectedProspectForTiming, setSelectedProspectForTiming] = useState<any>(null)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -130,12 +133,6 @@ export function ProspectsContent() {
     }
   }
 
-  const getEngagementColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500'
-    if (score >= 60) return 'bg-yellow-500'
-    return 'bg-red-500'
-  }
-
   const handleSelectAll = () => {
     if (selectedProspects.length === prospects.length) {
       setSelectedProspects([])
@@ -152,11 +149,16 @@ export function ProspectsContent() {
     )
   }
 
+  const handleTimingAnalysis = (prospect: any) => {
+    setSelectedProspectForTiming(prospect)
+    setTimingAnalyzerOpen(true)
+  }
+
   const filteredProspects = prospects.filter(prospect => {
     const matchesSearch = prospect.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          prospect.company.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesIndustry = !industryFilter || prospect.industry === industryFilter
-    const matchesStatus = !statusFilter || prospect.status === statusFilter
+    const matchesIndustry = !industryFilter || industryFilter === 'all' || prospect.industry === industryFilter
+    const matchesStatus = !statusFilter || statusFilter === 'all' || prospect.status === statusFilter
     
     return matchesSearch && matchesIndustry && matchesStatus
   })
@@ -168,7 +170,7 @@ export function ProspectsContent() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Prospects</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage your LinkedIn prospects and connections</p>
         </div>
-        <Button className="bg-[#0A66C2] hover:bg-[#0A66C2]/90">
+        <Button className="bg-[#2563EB] hover:bg-[#2563EB]/90">
           <Upload className="mr-2 h-4 w-4" />
           Import Prospects
         </Button>
@@ -195,7 +197,7 @@ export function ProspectsContent() {
                   <SelectValue placeholder="Industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Industries</SelectItem>
+                  <SelectItem value="all">All Industries</SelectItem>
                   <SelectItem value="Technology">Technology</SelectItem>
                   <SelectItem value="SaaS">SaaS</SelectItem>
                   <SelectItem value="Marketing">Marketing</SelectItem>
@@ -208,7 +210,7 @@ export function ProspectsContent() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="connected">Connected</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="responded">Responded</SelectItem>
@@ -341,6 +343,10 @@ export function ProspectsContent() {
                           <MessageSquare className="mr-2 h-4 w-4" />
                           Send Message
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleTimingAnalysis(prospect)}>
+                          <Clock className="mr-2 h-4 w-4" />
+                          Timing Analysis
+                        </DropdownMenuItem>
                         <DropdownMenuItem>
                           <FileText className="mr-2 h-4 w-4" />
                           Add Note
@@ -358,6 +364,13 @@ export function ProspectsContent() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Timing Analyzer Modal */}
+      <TimingAnalyzer
+        isOpen={timingAnalyzerOpen}
+        onClose={() => setTimingAnalyzerOpen(false)}
+        prospect={selectedProspectForTiming}
+      />
     </div>
   )
 }

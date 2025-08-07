@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,8 +29,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Download, TrendingUp, TrendingDown, Users, Send, MessageCircle, Calendar } from 'lucide-react'
+import { Download, TrendingUp, TrendingDown, Users, Send, MessageCircle, Calendar, RefreshCw, Activity } from 'lucide-react'
 
+// Static data to ensure charts always render
 const responseRateData = [
   { date: '2024-01-01', rate: 18.5 },
   { date: '2024-01-02', rate: 22.3 },
@@ -40,18 +42,18 @@ const responseRateData = [
   { date: '2024-01-07', rate: 26.9 },
 ]
 
+const industryData = [
+  { name: 'Technology', value: 35, color: '#2563EB' },
+  { name: 'SaaS', value: 28, color: '#059669' },
+  { name: 'Marketing', value: 20, color: '#DC2626' },
+  { name: 'Finance', value: 17, color: '#D97706' },
+]
+
 const campaignPerformanceData = [
   { name: 'Tech Startup Outreach', sent: 150, responses: 38, meetings: 12, responseRate: 25.3 },
   { name: 'Enterprise Sales', sent: 89, responses: 21, meetings: 8, responseRate: 23.6 },
   { name: 'SaaS Founders', sent: 180, responses: 52, meetings: 18, responseRate: 28.9 },
   { name: 'Marketing Directors', sent: 95, responses: 19, meetings: 6, responseRate: 20.0 },
-]
-
-const industryData = [
-  { name: 'Technology', value: 35, color: '#0A66C2' },
-  { name: 'SaaS', value: 28, color: '#059669' },
-  { name: 'Marketing', value: 20, color: '#D97706' },
-  { name: 'Finance', value: 17, color: '#DC2626' },
 ]
 
 const messageTemplateData = [
@@ -63,17 +65,39 @@ const messageTemplateData = [
 ]
 
 export function AnalyticsContent() {
+  const [refreshing, setRefreshing] = useState(false)
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    // Simulate refresh
+    setTimeout(() => setRefreshing(false), 1000)
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+            <Activity className="mr-3 h-8 w-8 text-[#2563EB]" />
+            Analytics
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">Track your LinkedIn outreach performance</p>
         </div>
-        <Button variant="outline">
-          <Download className="mr-2 h-4 w-4" />
-          Export Reports
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleRefresh} 
+            disabled={refreshing}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            Export Reports
+          </Button>
+        </div>
       </div>
 
       {/* Key Metrics */}
@@ -145,27 +169,37 @@ export function AnalyticsContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={responseRateData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                  formatter={(value) => [`${value}%`, 'Response Rate']}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="rate" 
-                  stroke="#0A66C2" 
-                  strokeWidth={3}
-                  dot={{ fill: '#0A66C2', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={responseRateData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    className="text-gray-600"
+                  />
+                  <YAxis className="text-gray-600" />
+                  <Tooltip 
+                    labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                    formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Response Rate']}
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="rate" 
+                    stroke="#2563EB" 
+                    strokeWidth={3}
+                    dot={{ fill: '#2563EB', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#2563EB', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -178,25 +212,43 @@ export function AnalyticsContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={industryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {industryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value}%`, 'Response Rate']} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <Pie
+                    data={industryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {industryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value}%`, 'Response Rate']}
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => (
+                      <span style={{ color: entry.color }}>
+                        {value} ({entry.payload.value}%)
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>

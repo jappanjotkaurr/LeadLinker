@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
-import { DashboardContent } from '@/components/dashboard-content'
+import { RealtimeDashboard } from '@/components/realtime-dashboard'
 import { CampaignsContent } from '@/components/campaigns-content'
 import { ProspectsContent } from '@/components/prospects-content'
 import { MessagesContent } from '@/components/messages-content'
 import { AnalyticsContent } from '@/components/analytics-content'
+import { ReferralsContent } from '@/components/referrals-content'
 import { SettingsContent } from '@/components/settings-content'
 import { ThemeProvider } from '@/components/theme-provider'
 
@@ -18,7 +19,7 @@ export default function Dashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardContent />
+        return <RealtimeDashboard />
       case 'campaigns':
         return <CampaignsContent />
       case 'prospects':
@@ -27,15 +28,17 @@ export default function Dashboard() {
         return <MessagesContent />
       case 'analytics':
         return <AnalyticsContent />
+      case 'referrals':
+        return <ReferralsContent />
       case 'settings':
         return <SettingsContent />
       default:
-        return <DashboardContent />
+        return <RealtimeDashboard />
     }
   }
 
   return (
-    <ThemeProvider defaultTheme="light" storageKey="linkedin-ai-theme">
+    <ThemeProvider defaultTheme="light" storageKey="leadlinker-theme">
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
         <Sidebar 
           activeTab={activeTab} 

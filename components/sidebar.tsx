@@ -2,7 +2,8 @@
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { BarChart3, Users, MessageSquare, Target, Settings, Home, X } from 'lucide-react'
+import { BarChart3, Users, MessageSquare, Target, Settings, Home, X, Gift } from 'lucide-react'
+import Image from 'next/image'
 
 interface SidebarProps {
   activeTab: string
@@ -17,6 +18,7 @@ const navigation = [
   { name: 'Prospects', id: 'prospects', icon: Users },
   { name: 'Messages', id: 'messages', icon: MessageSquare },
   { name: 'Analytics', id: 'analytics', icon: BarChart3 },
+  { name: 'Referrals', id: 'referrals', icon: Gift },
   { name: 'Settings', id: 'settings', icon: Settings },
 ]
 
@@ -38,11 +40,15 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarP
       )}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-[#0A66C2] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">LA</span>
-            </div>
-            <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-              LinkedinAI Pro
+            <Image
+              src="/leadlinker-logo.png"
+              alt="LeadLinker"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
+            <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
+              LeadLinker
             </span>
           </div>
           <Button
@@ -66,7 +72,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }: SidebarP
                     className={cn(
                       "w-full justify-start",
                       activeTab === item.id 
-                        ? "bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90" 
+                        ? "bg-[#2563EB] text-white hover:bg-[#2563EB]/90" 
                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     )}
                     onClick={() => {
