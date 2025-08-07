@@ -1,301 +1,212 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
-} from 'recharts'
-import { Users, Send, MessageCircle, Calendar, Plus, Upload, Zap, RefreshCw, Bell, TrendingUp, Activity } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Activity, Users, MessageSquare, TrendingUp, RefreshCw } from 'lucide-react'
+import { useRealtimeData } from '@/hooks/use-realtime-data'
 
-// Static chart data to ensure it always renders
-const chartData = [
-  { date: '2024-01-01', connections: 12, responses: 3 },
-  { date: '2024-01-02', connections: 15, responses: 5 },
-  { date: '2024-01-03', connections: 8, responses: 2 },
-  { date: '2024-01-04', connections: 20, responses: 8 },
-  { date: '2024-01-05', connections: 18, responses: 6 },
-  { date: '2024-01-06', connections: 25, responses: 10 },
-  { date: '2024-01-07', connections: 22, responses: 9 },
-]
-
-const recentActivity = [
-  {
-    id: 1,
-    action: 'Campaign "Tech Startup Outreach" launched',
-    time: '2 hours ago',
-    status: 'success'
-  },
-  {
-    id: 2,
-    action: 'New connection accepted from Sarah Johnson',
-    time: '4 hours ago',
-    status: 'success'
-  },
-  {
-    id: 3,
-    action: 'Follow-up message sent to 15 prospects',
-    time: '6 hours ago',
-    status: 'info'
-  },
-  {
-    id: 4,
-    action: 'Meeting booked with David Chen',
-    time: '1 day ago',
-    status: 'success'
-  },
-]
-
-const activeCampaigns = [
-  { name: 'Tech Startup Outreach', progress: 75, sent: 150, responses: 38 },
-  { name: 'Enterprise Sales Campaign', progress: 45, sent: 89, responses: 21 },
-  { name: 'SaaS Founders Network', progress: 90, sent: 200, responses: 52 },
+// Static fallback data to ensure charts always render
+const fallbackPerformanceData = [
+  { time: '09:00', connections: 12, responses: 3 },
+  { time: '10:00', connections: 18, responses: 5 },
+  { time: '11:00', connections: 25, responses: 8 },
+  { time: '12:00', connections: 31, responses: 12 },
+  { time: '13:00', connections: 28, responses: 9 },
+  { time: '14:00', connections: 35, responses: 15 },
+  { time: '15:00', connections: 42, responses: 18 },
+  { time: '16:00', connections: 38, responses: 16 }
 ]
 
 export function RealtimeDashboard() {
-  const [refreshing, setRefreshing] = useState(false)
+  const { data, isLoading, error, refresh } = useRealtimeData()
+  const [performanceData, setPerformanceData] = useState(fallbackPerformanceData)
 
-  const handleRefresh = async () => {
-    setRefreshing(true)
-    setTimeout(() => setRefreshing(false), 1000)
+  useEffect(() => {
+    // Use real data if available, otherwise fallback to static data
+    if (data?.performanceData && data.performanceData.length > 0) {
+      setPerformanceData(data.performanceData)
+    }
+  }, [data])
+
+  const stats = data || {
+    totalConnections: 1247,
+    todayConnections: 23,
+    responseRate: 28.4,
+    activeConversations: 15
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Activity className="mr-3 h-8 w-8 text-[#2563EB]" />
-            Live Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 flex items-center mt-1">
-            Real-time LinkedIn automation overview
-            <Badge variant="outline" className="ml-2 text-green-600 border-green-600">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse" />
-              Live
-            </Badge>
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            onClick={handleRefresh} 
-            disabled={refreshing}
-            variant="outline"
-            size="sm"
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
-          <Button className="bg-[#2563EB] hover:bg-[#2563EB]/90">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Campaign
-          </Button>
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Import Prospects
-          </Button>
-        </div>
-      </div>
-
-      {/* Live Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-2 right-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
-              +2 from last month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-2 right-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Connections Sent</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
-              +180 from last week
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-2 right-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
-            <MessageCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24.5%</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
-              +2.1% from last week
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-2 right-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Meetings Booked</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 inline mr-1 text-green-500" />
-              +12 from last week
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Live Performance Chart */}
+    <div className="space-y-6">
+      {/* Real-time Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="mr-2 h-5 w-5" />
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Total Connections
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.totalConnections?.toLocaleString() || '1,247'}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <Badge variant="secondary" className="text-xs">
+                <Activity className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Today's Connections
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.todayConnections || '23'}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <Badge variant="secondary" className="text-xs">
+                <Activity className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Response Rate
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.responseRate || '28.4'}%
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <Badge variant="secondary" className="text-xs">
+                <Activity className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Active Conversations
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.activeConversations || '15'}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <Badge variant="secondary" className="text-xs">
+                <Activity className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Live Performance Chart */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-green-500" />
               Live Performance
-              <div className="w-2 h-2 bg-green-500 rounded-full ml-2 animate-pulse" />
+              <Badge variant="secondary" className="text-xs">
+                Real-time
+              </Badge>
             </CardTitle>
             <CardDescription>
               Real-time connection requests and responses
             </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-                  <XAxis 
-                    dataKey="date" 
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    className="text-gray-600"
-                  />
-                  <YAxis className="text-gray-600" />
-                  <Tooltip 
-                    labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="connections" 
-                    stroke="#2563EB" 
-                    strokeWidth={3}
-                    name="Connections"
-                    dot={{ fill: '#2563EB', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#2563EB', strokeWidth: 2 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="responses" 
-                    stroke="#059669" 
-                    strokeWidth={3}
-                    name="Responses"
-                    dot={{ fill: '#059669', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#059669', strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Latest actions from your campaigns
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.status === 'success' ? 'bg-green-500' : 
-                    activity.status === 'info' ? 'bg-blue-500' : 'bg-gray-500'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {activity.action}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Active Campaigns */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Campaigns</CardTitle>
-          <CardDescription>
-            Your currently running outreach campaigns
-          </CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refresh}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {activeCampaigns.map((campaign, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 dark:text-white">{campaign.name}</h4>
-                  <div className="flex items-center space-x-4 mt-2">
-                    <Progress value={campaign.progress} className="w-32" />
-                    <span className="text-sm text-gray-500">{campaign.progress}% complete</span>
-                  </div>
-                </div>
-                <div className="flex space-x-4 text-sm text-gray-500">
-                  <span>{campaign.sent} sent</span>
-                  <span>{campaign.responses} responses</span>
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    Active
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={performanceData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip 
+                labelFormatter={(value) => `Time: ${value}`}
+                formatter={(value, name) => [
+                  value,
+                  name === 'connections' ? 'Connections' : 'Responses'
+                ]}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="connections" 
+                stroke="#2563EB" 
+                strokeWidth={2}
+                dot={{ fill: '#2563EB', strokeWidth: 2, r: 3 }}
+                activeDot={{ r: 5, stroke: '#2563EB', strokeWidth: 2 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="responses" 
+                stroke="#059669" 
+                strokeWidth={2}
+                dot={{ fill: '#059669', strokeWidth: 2, r: 3 }}
+                activeDot={{ r: 5, stroke: '#059669', strokeWidth: 2 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50 dark:bg-red-900/10">
+          <CardContent className="pt-6">
+            <p className="text-red-600 dark:text-red-400">
+              Error loading real-time data: {error}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

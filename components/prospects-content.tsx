@@ -31,6 +31,7 @@ import {
 import { Search, Download, Send, MoreHorizontal, Eye, MessageSquare, FileText, Trash2, Upload, Clock } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TimingAnalyzer } from '@/components/timing-analyzer'
+import { PdfLeadBrief } from '@/components/pdf-lead-brief'
 
 const prospects = [
   {
@@ -346,6 +347,11 @@ export function ProspectsContent() {
                         <DropdownMenuItem onClick={() => handleTimingAnalysis(prospect)}>
                           <Clock className="mr-2 h-4 w-4" />
                           Timing Analysis
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <div className="w-full">
+                            <PdfLeadBrief prospect={prospect} />
+                          </div>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <FileText className="mr-2 h-4 w-4" />

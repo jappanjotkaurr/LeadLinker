@@ -13,10 +13,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Send, Calendar, Sparkles, RefreshCw, Clock, Building, MapPin, TrendingUp, Presentation } from 'lucide-react'
+import { Send, Calendar, Sparkles, RefreshCw, Clock, Building, MapPin, TrendingUp, Presentation, Mic, Video, BarChart3, Target, Zap, Brain, MessageSquare, Users, Eye, Headphones } from 'lucide-react'
 import { MessageEnhancer } from '@/components/message-enhancer'
 import { TimingAnalyzer } from '@/components/timing-analyzer'
 import { PitchboardCreator } from '@/components/pitchboard-creator'
+import { MessageScheduler } from '@/components/message-scheduler'
+import { VoiceRecorder } from '@/components/voice-recorder'
+import { AIMessageOptimizer } from '@/components/ai-message-optimizer'
+import { SentimentAnalyzer } from '@/components/sentiment-analyzer'
+import { ABTestManager } from '@/components/ab-test-manager'
 
 const selectedProspect = {
   id: 1,
@@ -25,6 +30,7 @@ const selectedProspect = {
   company: 'TechCorp Inc.',
   location: 'San Francisco, CA',
   avatar: '/professional-woman-diverse.png',
+  linkedinUrl: 'https://linkedin.com/in/sarah-johnson-techcorp',
   recentActivity: [
     'Posted about AI in software development',
     'Shared article on team leadership',
@@ -34,6 +40,11 @@ const selectedProspect = {
     size: '500-1000 employees',
     industry: 'Technology',
     recentNews: 'Raised $50M Series B funding'
+  },
+  engagement: {
+    responseRate: 85,
+    bestTimeToContact: '10:00 AM - 12:00 PM PST',
+    preferredChannel: 'LinkedIn Messages'
   }
 }
 
@@ -81,13 +92,20 @@ export function MessagesContent() {
   const [message, setMessage] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [showPitchboardCreator, setShowPitchboardCreator] = useState(false)
+  const [showScheduler, setShowScheduler] = useState(false)
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false)
+  const [showAIOptimizer, setShowAIOptimizer] = useState(false)
+  const [showSentimentAnalyzer, setShowSentimentAnalyzer] = useState(false)
+  const [showABTester, setShowABTester] = useState(false)
+  const [messageScore, setMessageScore] = useState(0)
+  const [sentiment, setSentiment] = useState({ score: 0, label: 'neutral' })
 
   const currentTemplate = messageTemplates[messageType as keyof typeof messageTemplates]
 
   const generateMessage = async () => {
     setIsGenerating(true)
     
-    // Simulate AI generation
+    // Simulate AI generation with more sophisticated content
     setTimeout(() => {
       const sampleMessages = {
         connection: `Hi ${selectedProspect.name}, I came across your recent post about AI in software development and found your insights really valuable. As someone working in the same space, I'd love to connect and potentially share some thoughts on how AI is transforming our industry. Looking forward to connecting!`,
@@ -96,35 +114,140 @@ export function MessagesContent() {
         followup3: `Hi ${selectedProspect.name}, I wanted to share a quick success story that might interest you. We recently helped a VP of Engineering at a Series B company (similar to ${selectedProspect.company}) reduce their deployment time by 60% while improving code quality. I'd love to show you how this could work for your team. Are you available for a brief call this week?`
       }
       
-      setMessage(sampleMessages[messageType as keyof typeof sampleMessages] || '')
+      const generatedMessage = sampleMessages[messageType as keyof typeof sampleMessages] || ''
+      setMessage(generatedMessage)
+      
+      // Simulate AI scoring
+      setMessageScore(Math.floor(Math.random() * 30) + 70) // 70-100 score
+      
+      // Simulate sentiment analysis
+      const sentiments = [
+        { score: 0.8, label: 'positive' },
+        { score: 0.6, label: 'positive' },
+        { score: 0.2, label: 'neutral' }
+      ]
+      setSentiment(sentiments[Math.floor(Math.random() * sentiments.length)])
+      
       setIsGenerating(false)
     }, 2000)
   }
 
   const scheduleMessage = () => {
-    // Handle message scheduling
-    console.log('Scheduling message:', { messageType, message, prospect: selectedProspect.id })
+    setShowScheduler(true)
   }
 
   const sendMessage = () => {
-    // Handle immediate sending
-    console.log('Sending message:', { messageType, message, prospect: selectedProspect.id })
+    // Redirect to LinkedIn with pre-filled message
+    const linkedinUrl = `https://www.linkedin.com/messaging/compose/?recipient=${selectedProspect.linkedinUrl.split('/in/')[1]}`
+    
+    // Store message in localStorage for potential retrieval
+    localStorage.setItem('draftMessage', JSON.stringify({
+      recipient: selectedProspect.name,
+      message: message,
+      timestamp: new Date().toISOString()
+    }))
+    
+    // Open LinkedIn in new tab
+    window.open(linkedinUrl, '_blank')
+    
+    // Show success notification
+    console.log('Redirecting to LinkedIn for:', { messageType, message, prospect: selectedProspect.id })
+  }
+
+  const handleVoiceMessage = (audioBlob: Blob) => {
+    // Convert voice to text and append to message
+    console.log('Voice message recorded:', audioBlob)
+    setMessage(prev => prev + '\n\n[Voice message transcription would appear here]')
   }
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Message Generator</h1>
-          <p className="text-gray-600 dark:text-gray-400">Create personalized LinkedIn messages with AI assistance</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Message Generator</h1>
+          <p className="text-gray-600 dark:text-gray-400">Create personalized LinkedIn messages with advanced AI assistance</p>
         </div>
-        <Button 
-          onClick={() => setShowPitchboardCreator(true)}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-        >
-          <Presentation className="mr-2 h-4 w-4" />
-          Create Pitchboard
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            onClick={() => setShowVoiceRecorder(true)}
+            variant="outline"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0"
+          >
+            <Mic className="mr-2 h-4 w-4" />
+            Voice Message
+          </Button>
+          <Button 
+            onClick={() => setShowAIOptimizer(true)}
+            variant="outline"
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0"
+          >
+            <Brain className="mr-2 h-4 w-4" />
+            AI Optimize
+          </Button>
+          <Button 
+            onClick={() => setShowPitchboardCreator(true)}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            <Presentation className="mr-2 h-4 w-4" />
+            Create Pitchboard
+          </Button>
+        </div>
+      </div>
+
+      {/* AI Insights Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Target className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-sm font-medium">Message Score</p>
+                <p className="text-2xl font-bold text-blue-600">{messageScore}/100</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-sm font-medium">Response Rate</p>
+                <p className="text-2xl font-bold text-green-600">{selectedProspect.engagement.responseRate}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Eye className="h-5 w-5 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium">Sentiment</p>
+                <p className={`text-2xl font-bold capitalize ${
+                  sentiment.label === 'positive' ? 'text-green-600' : 
+                  sentiment.label === 'negative' ? 'text-red-600' : 'text-yellow-600'
+                }`}>
+                  {sentiment.label}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-orange-500" />
+              <div>
+                <p className="text-sm font-medium">Best Time</p>
+                <p className="text-sm font-bold text-orange-600">10-12 PM PST</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -134,7 +257,7 @@ export function MessagesContent() {
             <CardHeader>
               <CardTitle>Prospect Profile</CardTitle>
               <CardDescription>
-                Information about your selected prospect
+                AI-enhanced information about your selected prospect
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -201,6 +324,26 @@ export function MessagesContent() {
                   ))}
                 </ul>
               </div>
+
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                  Engagement Insights
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Response Rate:</span>
+                    <span className="text-green-600 font-medium">{selectedProspect.engagement.responseRate}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Best Time:</span>
+                    <span>{selectedProspect.engagement.bestTimeToContact}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Preferred Channel:</span>
+                    <span>{selectedProspect.engagement.preferredChannel}</span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -217,7 +360,7 @@ export function MessagesContent() {
             <CardHeader>
               <CardTitle>Compose Message</CardTitle>
               <CardDescription>
-                Create personalized messages with AI assistance
+                Create personalized messages with advanced AI assistance
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -243,13 +386,20 @@ export function MessagesContent() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Message Content
                   </label>
-                  <span className={`text-xs ${
-                    message.length > currentTemplate.maxLength 
-                      ? 'text-red-500' 
-                      : 'text-gray-500'
-                  }`}>
-                    {message.length}/{currentTemplate.maxLength}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs ${
+                      message.length > currentTemplate.maxLength 
+                        ? 'text-red-500' 
+                        : 'text-gray-500'
+                    }`}>
+                      {message.length}/{currentTemplate.maxLength}
+                    </span>
+                    {messageScore > 0 && (
+                      <Badge variant={messageScore >= 80 ? "default" : messageScore >= 60 ? "secondary" : "destructive"}>
+                        Score: {messageScore}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <Textarea
                   placeholder={`Write your ${currentTemplate.title.toLowerCase()} here...`}
@@ -295,6 +445,22 @@ export function MessagesContent() {
                     </>
                   )}
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSentimentAnalyzer(true)}
+                  className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Analyze
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowABTester(true)}
+                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                >
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  A/B Test
+                </Button>
               </div>
 
               <div>
@@ -333,7 +499,7 @@ export function MessagesContent() {
                   className="flex-1 bg-[#0A66C2] hover:bg-[#0A66C2]/90"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  Send Now
+                  Send on LinkedIn
                 </Button>
               </div>
             </CardContent>
@@ -344,10 +510,43 @@ export function MessagesContent() {
       {/* Message Enhancer Section */}
       <MessageEnhancer />
 
-      {/* Pitchboard Creator Modal */}
+      {/* Modals */}
       <PitchboardCreator 
         isOpen={showPitchboardCreator}
         onClose={() => setShowPitchboardCreator(false)}
+      />
+      
+      <MessageScheduler
+        isOpen={showScheduler}
+        onClose={() => setShowScheduler(false)}
+        message={message}
+        prospect={selectedProspect}
+      />
+      
+      <VoiceRecorder
+        isOpen={showVoiceRecorder}
+        onClose={() => setShowVoiceRecorder(false)}
+        onVoiceMessage={handleVoiceMessage}
+      />
+      
+      <AIMessageOptimizer
+        isOpen={showAIOptimizer}
+        onClose={() => setShowAIOptimizer(false)}
+        message={message}
+        onOptimizedMessage={setMessage}
+      />
+      
+      <SentimentAnalyzer
+        isOpen={showSentimentAnalyzer}
+        onClose={() => setShowSentimentAnalyzer(false)}
+        message={message}
+      />
+      
+      <ABTestManager
+        isOpen={showABTester}
+        onClose={() => setShowABTester(false)}
+        message={message}
+        prospect={selectedProspect}
       />
     </div>
   )

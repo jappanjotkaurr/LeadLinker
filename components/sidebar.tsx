@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { BarChart3, Users, MessageSquare, Target, Settings, Home, X, Gift } from 'lucide-react'
+import { BarChart3, Users, MessageSquare, Target, Settings, Home, X, Gift, GitBranch } from 'lucide-react'
 import Image from 'next/image'
 
 interface SidebarProps {
@@ -19,6 +19,7 @@ const navigation = [
   { name: 'Messages', id: 'messages', icon: MessageSquare },
   { name: 'Analytics', id: 'analytics', icon: BarChart3 },
   { name: 'Referrals', id: 'referrals', icon: Gift },
+  { name: 'Architecture', id: 'architecture', icon: GitBranch },
   { name: 'Settings', id: 'settings', icon: Settings },
 ]
 

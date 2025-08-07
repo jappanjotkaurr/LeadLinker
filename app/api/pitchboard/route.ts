@@ -44,6 +44,14 @@ export async function POST(request: NextRequest) {
     if (body.action === 'generate-content') {
       const { slideType, targetAudience, industry, valueProposition } = body.generateContent
       
+      // Don't generate content for video slides
+      if (slideType === 'video') {
+        return NextResponse.json({
+          success: false,
+          error: 'Content generation not available for video slides'
+        }, { status: 400 })
+      }
+      
       const contentPrompt = `
 Create compelling content for a LinkedIn pitchboard slide:
 
@@ -102,12 +110,34 @@ Return only valid JSON.
       const shareableLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://leadlinker.com'}/pitchboard/${pitchboardId}`
       
       // In a real app, save to database here
-      console.log('Saving pitchboard:', pitchboardId, pitchboardData)
+      // For video slides, you would also need to upload the video files to a storage service
+      console.log('Saving pitchboard:', pitchboardId, {
+        ...pitchboardData,
+        slides: pitchboardData.slides.map((slide: any) => ({
+          ...slide,
+          hasVideo: slide.type === 'video' && slide.videoUrl,
+          videoFileName: slide.videoFile?.name
+        }))
+      })
       
       return NextResponse.json({
         success: true,
         pitchboardId,
         shareableLink
+      })
+    }
+
+    if (body.action === 'upload-video') {
+      // In a real implementation, you would handle video file upload here
+      // This could involve uploading to AWS S3, Cloudinary, or another storage service
+      const { videoFile, pitchboardId } = body
+      
+      // Mock video upload response
+      const videoUrl = `https://storage.example.com/videos/${pitchboardId}/${Date.now()}.mp4`
+      
+      return NextResponse.json({
+        success: true,
+        videoUrl
       })
     }
 

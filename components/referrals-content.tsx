@@ -1,637 +1,529 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Gift, Copy, Share2, Trophy, Star, Users, MessageSquare, Crown, Target, Zap, Award, TrendingUp, ExternalLink, Mail, Linkedin, Twitter, CheckCircle, Clock, FlameIcon as Fire } from 'lucide-react'
-
-// Dummy data for referrals
-const referralData = {
-  referralCode: 'LEAD2024',
-  totalReferrals: 7,
-  messageCredits: 750,
-  proMonthsEarned: 1,
-  referredUsers: [
-    { name: 'John Smith', joinedDate: '2024-01-15', status: 'active' },
-    { name: 'Emma Wilson', joinedDate: '2024-01-20', status: 'active' },
-    { name: 'Mike Johnson', joinedDate: '2024-01-25', status: 'pending' },
-    { name: 'Sarah Davis', joinedDate: '2024-02-01', status: 'active' },
-    { name: 'Alex Chen', joinedDate: '2024-02-05', status: 'active' },
-    { name: 'Lisa Brown', joinedDate: '2024-02-10', status: 'active' },
-    { name: 'David Miller', joinedDate: '2024-02-12', status: 'pending' }
-  ],
-  rank: 3
-}
-
-const leaderboard = [
-  { name: 'Sarah Johnson', referrals: 23, credits: 2300, rank: 1, avatar: '/professional-woman-diverse.png' },
-  { name: 'Mike Chen', referrals: 18, credits: 1800, rank: 2, avatar: '/professional-man.png' },
-  { name: 'You', referrals: referralData.totalReferrals, credits: referralData.messageCredits, rank: 3, avatar: '/professional-headshot.png' },
-  { name: 'Emily Rodriguez', referrals: 12, credits: 1200, rank: 4, avatar: '/professional-woman-marketing.png' },
-  { name: 'David Kim', referrals: 9, credits: 900, rank: 5, avatar: '/professional-ceo.png' }
-]
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Users, Gift, Crown, Trophy, Award, Copy, Share2, Mail, Linkedin, Twitter, Star, Flame, Target, Send } from 'lucide-react'
 
 const mentors = [
   {
     id: 1,
-    name: 'Alex Rodriguez',
+    name: 'Sarah Chen',
     title: 'LinkedIn Growth Expert',
-    company: 'SalesForce',
+    company: 'SocialScale',
+    avatar: '/professional-woman-marketing.png',
     expertise: ['LinkedIn Strategy', 'B2B Sales', 'Lead Generation'],
-    followers: '50K+',
-    responseRate: '95%',
-    avatar: '/professional-man.png',
+    followers: '125K',
+    bonus: 500,
+    featured: true,
     bio: 'Helped 500+ professionals grow their LinkedIn presence and generate quality leads.',
-    linkedinUrl: 'https://linkedin.com/in/alexrodriguez',
-    twitterUrl: 'https://twitter.com/alexrodriguez',
-    email: 'alex@salesforce.com',
-    referralBonus: '200 credits',
-    featured: true
+    linkedin: 'https://linkedin.com/in/sarahchen',
+    twitter: 'https://twitter.com/sarahchen'
   },
   {
     id: 2,
-    name: 'Sarah Mitchell',
+    name: 'Marcus Johnson',
     title: 'Sales Automation Specialist',
-    company: 'HubSpot',
-    expertise: ['Sales Automation', 'CRM Strategy', 'Pipeline Management'],
-    followers: '35K+',
-    responseRate: '92%',
-    avatar: '/professional-woman-diverse.png',
-    bio: 'Sales automation expert with 8+ years of experience in scaling B2B operations.',
-    linkedinUrl: 'https://linkedin.com/in/sarahmitchell',
-    twitterUrl: 'https://twitter.com/sarahmitchell',
-    email: 'sarah@hubspot.com',
-    referralBonus: '150 credits',
-    featured: true
+    company: 'AutoSales Pro',
+    avatar: '/professional-man.png',
+    expertise: ['Sales Automation', 'CRM Integration', 'Outreach'],
+    followers: '89K',
+    bonus: 400,
+    featured: true,
+    bio: 'Built sales automation systems that generated $50M+ in pipeline.',
+    linkedin: 'https://linkedin.com/in/marcusjohnson',
+    twitter: 'https://twitter.com/marcusjohnson'
   },
   {
     id: 3,
-    name: 'Marcus Thompson',
-    title: 'B2B Marketing Director',
-    company: 'Salesforce',
-    expertise: ['Content Marketing', 'Lead Nurturing', 'Marketing Automation'],
-    followers: '28K+',
-    responseRate: '88%',
-    avatar: '/professional-ceo.png',
-    bio: 'B2B marketing strategist specializing in lead generation and conversion optimization.',
-    linkedinUrl: 'https://linkedin.com/in/marcusthompson',
-    twitterUrl: 'https://twitter.com/marcusthompson',
-    email: 'marcus@salesforce.com',
-    referralBonus: '175 credits',
-    featured: false
+    name: 'Emily Rodriguez',
+    title: 'B2B Networking Coach',
+    company: 'NetworkPro',
+    avatar: '/professional-woman-diverse.png',
+    expertise: ['Networking', 'Relationship Building', 'Personal Branding'],
+    followers: '67K',
+    bonus: 350,
+    featured: true,
+    bio: 'Coached 1000+ professionals to build meaningful business relationships.',
+    linkedin: 'https://linkedin.com/in/emilyrodriguez',
+    twitter: 'https://twitter.com/emilyrodriguez'
   },
   {
     id: 4,
-    name: 'Jennifer Lee',
-    title: 'LinkedIn Trainer & Coach',
-    company: 'LinkedIn Learning',
-    expertise: ['LinkedIn Training', 'Personal Branding', 'Network Building'],
-    followers: '42K+',
-    responseRate: '94%',
-    avatar: '/professional-woman-marketing.png',
-    bio: 'Official LinkedIn trainer helping professionals maximize their platform presence.',
-    linkedinUrl: 'https://linkedin.com/in/jenniferlee',
-    twitterUrl: 'https://twitter.com/jenniferlee',
-    email: 'jennifer@linkedin.com',
-    referralBonus: '250 credits',
-    featured: true
+    name: 'David Kim',
+    title: 'LinkedIn Content Creator',
+    company: 'ContentKing',
+    avatar: '/professional-ceo.png',
+    expertise: ['Content Strategy', 'Thought Leadership', 'Engagement'],
+    followers: '156K',
+    bonus: 600,
+    featured: true,
+    bio: 'Created viral LinkedIn content with 10M+ views and helped brands build authority.',
+    linkedin: 'https://linkedin.com/in/davidkim',
+    twitter: 'https://twitter.com/davidkim'
   }
 ]
 
-const milestones = [
-  { referrals: 1, reward: '100 Message Credits', achieved: referralData.totalReferrals >= 1 },
-  { referrals: 3, reward: '300 Message Credits', achieved: referralData.totalReferrals >= 3 },
-  { referrals: 5, reward: '1 Month Pro Plan', achieved: referralData.totalReferrals >= 5 },
-  { referrals: 10, reward: '3 Months Pro Plan', achieved: referralData.totalReferrals >= 10 },
-  { referrals: 25, reward: '1 Year Pro Plan', achieved: referralData.totalReferrals >= 25 }
+const referralData = {
+  totalReferrals: 7,
+  totalCredits: 750,
+  proMonthsEarned: 1,
+  currentRank: 3,
+  nextMilestone: 10,
+  hotStreak: 3
+}
+
+const leaderboard = [
+  { rank: 1, name: 'Alex Thompson', referrals: 23, credits: 2300, badge: 'Crown' },
+  { rank: 2, name: 'Maria Garcia', referrals: 18, credits: 1800, badge: 'Trophy' },
+  { rank: 3, name: 'You', referrals: 7, credits: 750, badge: 'Award', isUser: true },
+  { rank: 4, name: 'John Smith', referrals: 6, credits: 600, badge: null },
+  { rank: 5, name: 'Lisa Wang', referrals: 5, credits: 500, badge: null }
+]
+
+const referredUsers = [
+  { name: 'Michael Brown', email: 'm.brown@techcorp.com', status: 'Active', joinDate: '2024-01-15', credits: 100 },
+  { name: 'Jennifer Lee', email: 'j.lee@startup.io', status: 'Active', joinDate: '2024-01-12', credits: 100 },
+  { name: 'Robert Wilson', email: 'r.wilson@company.com', status: 'Pending', joinDate: '2024-01-10', credits: 0 },
+  { name: 'Amanda Davis', email: 'a.davis@business.com', status: 'Active', joinDate: '2024-01-08', credits: 100 },
+  { name: 'Chris Martinez', email: 'c.martinez@firm.com', status: 'Active', joinDate: '2024-01-05', credits: 100 }
 ]
 
 export function ReferralsContent() {
-  const [copied, setCopied] = useState(false)
-  const [selectedMentor, setSelectedMentor] = useState(null)
+  const [selectedMentor, setSelectedMentor] = useState<any>(null)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [referralMessage, setReferralMessage] = useState('')
-  const [showReferralDialog, setShowReferralDialog] = useState(false)
+  const [recipientEmail, setRecipientEmail] = useState('')
 
-  const copyReferralLink = () => {
-    const referralLink = `https://leadlinker.com/signup?ref=${referralData.referralCode}`
+  const referralLink = 'https://leadlinker.com/ref/your-unique-code'
+  const progressToNext = (referralData.totalReferrals / referralData.nextMilestone) * 100
+
+  const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    // You could add a toast notification here
   }
 
-  const shareReferralLink = () => {
-    const referralLink = `https://leadlinker.com/signup?ref=${referralData.referralCode}`
-    const shareText = `🚀 Join me on LeadLinker - the AI-powered LinkedIn automation tool that's transforming how we generate leads! Use my referral code ${referralData.referralCode} and we both get bonus credits! ${referralLink}`
-    
-    if (navigator.share) {
-      navigator.share({
-        title: 'Join LeadLinker',
-        text: shareText,
-        url: referralLink
-      })
-    } else {
-      navigator.clipboard.writeText(shareText)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
-  }
-
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="h-5 w-5 text-yellow-500" />
-      case 2:
-        return <Trophy className="h-5 w-5 text-gray-400" />
-      case 3:
-        return <Award className="h-5 w-5 text-amber-600" />
-      default:
-        return <Star className="h-5 w-5 text-gray-300" />
-    }
-  }
-
-  const getProgressToNextMilestone = () => {
-    const nextMilestone = milestones.find(m => !m.achieved)
-    if (!nextMilestone) return { progress: 100, nextMilestone: null }
-    
-    const progress = (referralData.totalReferrals / nextMilestone.referrals) * 100
-    return { progress, nextMilestone }
-  }
-
-  const { progress, nextMilestone } = getProgressToNextMilestone()
-
-  const sendReferralToMentor = (mentor: any) => {
+  const handleSendReferral = (mentor: any) => {
     setSelectedMentor(mentor)
-    setReferralMessage(`Hi ${mentor.name},
+    setReferralMessage(`Hi there!
 
-I've been using LeadLinker for LinkedIn automation and it's been incredible for my lead generation. I thought you might find it valuable given your expertise in ${mentor.expertise[0]}.
+I wanted to introduce you to ${mentor.name}, a ${mentor.title} at ${mentor.company}. 
 
-Would you be interested in checking it out? You can use my referral code ${referralData.referralCode} to get started with bonus credits.
+${mentor.bio}
 
-Here's the link: https://leadlinker.com/signup?ref=${referralData.referralCode}
+${mentor.name} specializes in: ${mentor.expertise.join(', ')}
+
+I thought you might find their expertise valuable for your LinkedIn growth and sales automation needs.
+
+You can connect with them here:
+LinkedIn: ${mentor.linkedin}
+
+Also, I'd love to invite you to try LeadLinker - it's been a game-changer for my LinkedIn outreach and automation. You can sign up using my referral link: ${referralLink}
 
 Best regards!`)
-    setShowReferralDialog(true)
+    setEmailDialogOpen(true)
+  }
+
+  const getRankIcon = (badge: string | null) => {
+    switch (badge) {
+      case 'Crown':
+        return <Crown className="h-5 w-5 text-yellow-500" />
+      case 'Trophy':
+        return <Trophy className="h-5 w-5 text-gray-400" />
+      case 'Award':
+        return <Award className="h-5 w-5 text-orange-500" />
+      default:
+        return null
+    }
   }
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Gift className="mr-3 h-8 w-8 text-[#2563EB]" />
-            Referral Program
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Referrals</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Earn rewards by inviting friends and mentors to LeadLinker
+            Earn credits and rewards by referring others to LeadLinker
           </p>
         </div>
-        <div className="flex gap-2">
-          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-            🎉 Limited Time: Double Rewards!
-          </Badge>
-          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-            <Fire className="h-3 w-3 mr-1" />
-            Hot Streak: {referralData.totalReferrals} referrals!
-          </Badge>
-        </div>
+        <Button className="bg-[#2563EB] hover:bg-[#2563EB]/90">
+          <Share2 className="mr-2 h-4 w-4" />
+          Share Referral Link
+        </Button>
       </div>
 
-      {/* Referral Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600">Total Referrals</p>
-                <p className="text-3xl font-bold text-blue-900">{referralData.totalReferrals}</p>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  Total Referrals
+                </p>
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                  {referralData.totalReferrals}
+                </p>
               </div>
-              <Users className="h-8 w-8 text-blue-500" />
+              <div className="h-12 w-12 bg-blue-200 dark:bg-blue-800 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <Flame className="h-4 w-4 text-orange-500 mr-1" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                {referralData.hotStreak} day streak!
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600">Message Credits</p>
-                <p className="text-3xl font-bold text-green-900">{referralData.messageCredits}</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                  Credits Earned
+                </p>
+                <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+                  {referralData.totalCredits}
+                </p>
               </div>
-              <MessageSquare className="h-8 w-8 text-green-500" />
+              <div className="h-12 w-12 bg-green-200 dark:bg-green-800 rounded-lg flex items-center justify-center">
+                <Gift className="h-6 w-6 text-green-600 dark:text-green-300" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <span className="text-sm text-green-700 dark:text-green-300">
+                100 credits per referral
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-600">Pro Months Earned</p>
-                <p className="text-3xl font-bold text-purple-900">{referralData.proMonthsEarned}</p>
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                  Pro Months
+                </p>
+                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                  {referralData.proMonthsEarned}
+                </p>
               </div>
-              <Crown className="h-8 w-8 text-purple-500" />
+              <div className="h-12 w-12 bg-purple-200 dark:bg-purple-800 rounded-lg flex items-center justify-center">
+                <Star className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <span className="text-sm text-purple-700 dark:text-purple-300">
+                1 month per 5 referrals
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-orange-600">Leaderboard Rank</p>
-                <p className="text-3xl font-bold text-orange-900">#{referralData.rank}</p>
+                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                  Leaderboard Rank
+                </p>
+                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">
+                  #{referralData.currentRank}
+                </p>
               </div>
-              <Trophy className="h-8 w-8 text-orange-500" />
+              <div className="h-12 w-12 bg-orange-200 dark:bg-orange-800 rounded-lg flex items-center justify-center">
+                <Award className="h-6 w-6 text-orange-600 dark:text-orange-300" />
+              </div>
+            </div>
+            <div className="flex items-center mt-2">
+              <span className="text-sm text-orange-700 dark:text-orange-300">
+                Top 10 this month
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Progress to Next Milestone */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Progress to Next Milestone
+          </CardTitle>
+          <CardDescription>
+            {referralData.nextMilestone - referralData.totalReferrals} more referrals to unlock 2 Pro months
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>{referralData.totalReferrals} referrals</span>
+              <span>{referralData.nextMilestone} referrals</span>
+            </div>
+            <Progress value={progressToNext} className="h-3" />
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Next reward: 2 Pro months + 500 bonus credits
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Referral Link */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Share2 className="mr-2 h-5 w-5" />
-            Your Referral Link
-          </CardTitle>
+          <CardTitle>Your Referral Link</CardTitle>
           <CardDescription>
-            Share this link with friends and earn rewards when they sign up
+            Share this link to earn 100 credits for each successful referral
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Input
-              value={`https://leadlinker.com/signup?ref=${referralData.referralCode}`}
-              readOnly
-              className="flex-1"
-            />
-            <Button onClick={copyReferralLink} variant="outline">
+        <CardContent>
+          <div className="flex gap-2">
+            <Input value={referralLink} readOnly className="flex-1" />
+            <Button onClick={handleCopyLink} variant="outline">
               <Copy className="h-4 w-4 mr-2" />
-              {copied ? 'Copied!' : 'Copy'}
+              Copy
             </Button>
-            <Button onClick={shareReferralLink} className="bg-[#2563EB] hover:bg-[#2563EB]/90">
+            <Button variant="outline">
               <Share2 className="h-4 w-4 mr-2" />
               Share
             </Button>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-lg font-bold text-gray-900">Your Referral Code</p>
-            <p className="text-2xl font-mono font-bold text-[#2563EB]">{referralData.referralCode}</p>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Progress to Next Milestone */}
-      {nextMilestone && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Target className="mr-2 h-5 w-5" />
-              Next Milestone
-            </CardTitle>
-            <CardDescription>
-              {nextMilestone.referrals - referralData.totalReferrals} more referrals to unlock: {nextMilestone.reward}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{referralData.totalReferrals} referrals</span>
-                <span>{nextMilestone.referrals} referrals</span>
-              </div>
-              <Progress value={progress} className="h-3" />
-              <p className="text-center text-sm text-gray-600">
-                {Math.round(progress)}% complete
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Featured Mentors Section */}
+      {/* Featured Mentors */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Star className="mr-2 h-5 w-5 text-yellow-500" />
-            Featured Mentors & Experts
+          <CardTitle className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-yellow-500" />
+            Featured LinkedIn Mentors
           </CardTitle>
           <CardDescription>
-            Refer these LinkedIn experts and earn bonus credits
+            Refer prospects to these LinkedIn experts and earn bonus credits
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {mentors.filter(mentor => mentor.featured).map((mentor) => (
-              <div key={mentor.id} className="border rounded-lg p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-white to-gray-50">
-                <div className="flex items-start space-x-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={mentor.avatar || "/placeholder.svg"} alt={mentor.name} />
-                    <AvatarFallback>{mentor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-lg">{mentor.name}</h3>
-                      {mentor.featured && <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>}
-                    </div>
-                    <p className="text-sm text-gray-600">{mentor.title}</p>
-                    <p className="text-sm text-gray-500">{mentor.company}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span>{mentor.followers} followers</span>
-                      <span>{mentor.responseRate} response rate</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <p className="text-sm text-gray-700 mt-3">{mentor.bio}</p>
-                
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {mentor.expertise.map((skill, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-                
-                <div className="flex items-center justify-between mt-4">
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => window.open(mentor.linkedinUrl, '_blank')}>
-                      <Linkedin className="h-3 w-3" />
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.open(mentor.twitterUrl, '_blank')}>
-                      <Twitter className="h-3 w-3" />
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => window.open(`mailto:${mentor.email}`, '_blank')}>
-                      <Mail className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">Bonus: {mentor.referralBonus}</p>
-                    <Button size="sm" onClick={() => sendReferralToMentor(mentor)} className="bg-[#2563EB] hover:bg-[#2563EB]/90">
-                      Send Referral
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* All Mentors */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Users className="mr-2 h-5 w-5" />
-            All LinkedIn Experts
-          </CardTitle>
-          <CardDescription>
-            Browse our complete list of LinkedIn professionals
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
             {mentors.map((mentor) => (
-              <div key={mentor.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={mentor.avatar || "/placeholder.svg"} alt={mentor.name} />
-                    <AvatarFallback>{mentor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-medium">{mentor.name}</h4>
-                      {mentor.featured && <Badge className="bg-yellow-100 text-yellow-800 text-xs">Featured</Badge>}
-                    </div>
-                    <p className="text-sm text-gray-600">{mentor.title} at {mentor.company}</p>
-                    <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
-                      <span>{mentor.followers} followers</span>
-                      <span>{mentor.responseRate} response rate</span>
-                      <span>Bonus: {mentor.referralBonus}</span>
+              <Card key={mentor.id} className="relative">
+                {mentor.featured && (
+                  <Badge className="absolute top-2 right-2 bg-yellow-500">
+                    <Star className="h-3 w-3 mr-1" />
+                    Featured
+                  </Badge>
+                )}
+                <CardContent className="pt-6">
+                  <div className="flex items-start space-x-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={mentor.avatar || "/placeholder.svg"} alt={mentor.name} />
+                      <AvatarFallback>
+                        {mentor.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{mentor.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {mentor.title} at {mentor.company}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {mentor.followers} LinkedIn followers
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {mentor.expertise.map((skill, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <Button size="sm" onClick={() => sendReferralToMentor(mentor)} variant="outline">
-                  Send Referral
-                </Button>
-              </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
+                    {mentor.bio}
+                  </p>
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={mentor.linkedin} target="_blank" rel="noopener noreferrer">
+                          <Linkedin className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={mentor.twitter} target="_blank" rel="noopener noreferrer">
+                          <Twitter className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="text-green-600">
+                        +{mentor.bonus} credits
+                      </Badge>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleSendReferral(mentor)}
+                        className="bg-[#2563EB] hover:bg-[#2563EB]/90"
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Send Referral
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Milestones */}
+      {/* Leaderboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Zap className="mr-2 h-5 w-5" />
-              Reward Milestones
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Referral Leaderboard
             </CardTitle>
-            <CardDescription>
-              Unlock amazing rewards as you refer more friends
-            </CardDescription>
+            <CardDescription>Top referrers this month</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {milestones.map((milestone, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-4 rounded-lg border ${
-                    milestone.achieved
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-gray-50 border-gray-200'
+            <div className="space-y-3">
+              {leaderboard.map((user) => (
+                <div 
+                  key={user.rank} 
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    user.isUser ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-800'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      milestone.achieved ? 'bg-green-500' : 'bg-gray-300'
-                    }`}>
-                      {milestone.achieved ? (
-                        <CheckCircle className="h-4 w-4 text-white" />
-                      ) : (
-                        <span className="text-xs font-bold text-white">{milestone.referrals}</span>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700">
+                      {getRankIcon(user.badge) || (
+                        <span className="text-sm font-bold">#{user.rank}</span>
                       )}
                     </div>
                     <div>
-                      <p className="font-medium">
-                        {milestone.referrals} Referral{milestone.referrals !== 1 ? 's' : ''}
-                      </p>
-                      <p className="text-sm text-gray-600">{milestone.reward}</p>
-                    </div>
-                  </div>
-                  {milestone.achieved && (
-                    <Badge className="bg-green-500 text-white">
-                      Unlocked!
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Leaderboard */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5" />
-              Leaderboard
-            </CardTitle>
-            <CardDescription>
-              Top referrers this month
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {leaderboard.map((user, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    user.name === 'You' ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2">
-                      {getRankIcon(user.rank)}
-                      <span className="font-bold text-lg">#{user.rank}</span>
-                    </div>
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className={`font-medium ${user.name === 'You' ? 'text-blue-900' : ''}`}>
+                      <p className={`font-medium ${user.isUser ? 'text-blue-900 dark:text-blue-100' : ''}`}>
                         {user.name}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-500">
                         {user.referrals} referrals
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-green-600">{user.credits}</p>
-                    <p className="text-xs text-gray-500">credits</p>
+                    <p className="font-semibold">{user.credits}</p>
+                    <p className="text-sm text-gray-500">credits</p>
                   </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+
+        {/* Referred Users */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Referrals</CardTitle>
+            <CardDescription>People you've successfully referred</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Credits</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {referredUsers.map((user, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-gray-500">
+                          Joined {new Date(user.joinDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={user.status === 'Active' ? 'default' : 'secondary'}
+                      >
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      +{user.credits}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Your Referrals */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Referrals ({referralData.referredUsers.length})</CardTitle>
-          <CardDescription>
-            People who joined using your referral code
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {referralData.referredUsers.map((user, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-gray-500">Joined {new Date(user.joinedDate).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <Badge className={user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                  {user.status === 'active' ? (
-                    <>
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Active
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="h-3 w-3 mr-1" />
-                      Pending
-                    </>
-                  )}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* How It Works */}
-      <Card>
-        <CardHeader>
-          <CardTitle>How Referrals Work</CardTitle>
-          <CardDescription>
-            Simple steps to start earning rewards
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Share2 className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="font-semibold mb-2">1. Share Your Link</h3>
-              <p className="text-sm text-gray-600">
-                Share your unique referral link with friends, colleagues, or LinkedIn experts
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Users className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold mb-2">2. Friends Sign Up</h3>
-              <p className="text-sm text-gray-600">
-                When someone signs up using your link, they become your referral
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Gift className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold mb-2">3. Earn Rewards</h3>
-              <p className="text-sm text-gray-600">
-                Get instant credits and unlock milestone rewards as you refer more people
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Referral Message Dialog */}
-      <Dialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
+      {/* Email Referral Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Send Referral to {selectedMentor?.name}</DialogTitle>
+            <DialogTitle>Send Referral Email</DialogTitle>
             <DialogDescription>
-              Customize your referral message before sending
+              Send a personalized referral email introducing {selectedMentor?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Textarea
-              value={referralMessage}
-              onChange={(e) => setReferralMessage(e.target.value)}
-              rows={8}
-              className="resize-none"
-            />
+            <div>
+              <label className="text-sm font-medium">Recipient Email</label>
+              <Input
+                placeholder="Enter recipient's email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Message</label>
+              <Textarea
+                rows={12}
+                value={referralMessage}
+                onChange={(e) => setReferralMessage(e.target.value)}
+              />
+            </div>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowReferralDialog(false)}>
+              <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
                 Cancel
               </Button>
               <Button 
-                onClick={() => {
-                  window.open(`mailto:${selectedMentor?.email}?subject=LeadLinker Referral&body=${encodeURIComponent(referralMessage)}`, '_blank')
-                  setShowReferralDialog(false)
-                }}
                 className="bg-[#2563EB] hover:bg-[#2563EB]/90"
+                onClick={() => {
+                  window.location.href = `mailto:${recipientEmail}?subject=Introduction to ${selectedMentor?.name} - LinkedIn Expert&body=${encodeURIComponent(referralMessage)}`
+                  setEmailDialogOpen(false)
+                }}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Send Email
